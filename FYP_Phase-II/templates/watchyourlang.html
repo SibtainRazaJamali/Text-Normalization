@@ -1,0 +1,194 @@
+<!doctype HTML>
+
+<!--Import the css style sheet-->
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+<!--Import the jquery-3 library-->
+<script src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
+
+<!--LOGO-->
+<div class="header" align="left">
+	<img src="static/images/logo3.png" style="width: 25%; height: 25%" alt="WYL_LOGO">
+</div>
+
+
+{% block body %} <!--FLASK BODY STARTS HERE-->
+
+<br><br><br><br>
+<table align="center">
+	<tr>
+		<td> <font color=green> <h3> Written (standard) text: </h3> </font> </td>
+		<td> <br> </td>
+		<td> <font color=green> <h3> Spoken (normalized) text: </h3> </font> </td>
+	</tr>	
+	<tr>
+		<td><textarea id="speakId" type="text" name="written_text" placeholder="your text here.."></textarea></td>
+		<td> <br> </td>
+		<td><textarea id="spoken-text" type="text" name="spoken_text"></textarea></td>
+		<!--td><div id="spoken-text" class="spoken_text"></div></td-->
+	</tr>
+	<tr>
+		<td>
+			<input type="file" id="myFile" class="inputfile"/>
+			<label for="myFile">Choose a file</label>
+			<input type="button" id="open_file" value="OPEN" onclick="loadFileAsText();"/>
+			<input type="button" id="save_txt" value="SAVE TEXT" onclick="saveTextAsFile();"/>
+			<input type="button" id="btn_clear" value="CLEAR" onclick="clear_texts();"/>
+			<input type="button" id="btn_speak" value="SPEAK"/>
+		</td>
+		<td>
+		</td>
+		<td align="right">
+			<font size="2" color="green"> <b> SPEAKER: </b> </font> <!--"native" or "fluent"-->
+			<select id="t">
+				<option value="native" selected="selected">Native</option>
+				<option value="fluent">Fluent</option>
+			</select>
+			<font size="2" color="green"> <b> SPEED: </b> </font> <!--0.1 to 10-->
+			<select id="s">
+				<option value="0.10">Slower</option>
+				<option value="0.50">Slow</option>
+				<option value="1.00" selected="selected">Normal</option>
+				<option value="5.00">Fast</option>
+				<option value="10.0">Faster</option>
+			</select>
+			<font size="2" color="green"> <b> VOLUME: </b> </font> <!--0 to 1-->
+			<select id="v">
+				<div id="VOLUME" class="dropdown-content">
+					<option value="0">Mute</option>
+					<option value="0.25">Low</option>
+					<option value="0.5" selected="selected">Normal</option>
+					<option value="0.75">High</option>
+					<option value="1">Higher</option>
+				</div>
+			</select>
+		</td>
+	</tr>
+</table><br><br><br><br>
+
+<script> <!--Javascrip starts here-->
+
+	$(document).ready(function(){
+		
+		$('#speakId').keyup(function(){
+			$('#spoken-text').html($(this).val());
+		});
+		
+		// assign click listener to "SPEAK" button
+		$("#btn_speak").on("click", btnClicked);
+		
+		// this function is called when btn "SPEAK" is clicked
+		function btnClicked(){
+			console.log("SPEAK called")
+			// get text from textarea
+			txt_from_frontEnd=$("#speakId").val()
+			normalized_text = ""			
+			$.ajax({
+				type: "POST",
+				url: "/normalize/"+txt_from_frontEnd,
+				data: normalized_text,
+				success: toSpeach,
+			});
+		}
+		
+		// https://developers.google.com/web/updates/2014/01/Web-apps-that-talk-Introduction-to-the-Speech-Synthesis-API
+		function toSpeach(normalized_text){ // this function is called when all the procesing is done by python
+			
+			var speech = new SpeechSynthesisUtterance();
+			var voices = window.speechSynthesis.getVoices();
+
+			speech.voice = voices[10]; // Note: some voices don't support altering params
+			speech.lang = 'en-US'; // default
+			speech.text = normalized_text;
+			speech.pitch = 1; //0 to 2
+			
+			var t = document.getElementById("t");
+			speech.voiceURI = t.options[t.selectedIndex].value;
+			//speech.voiceURI = "fluent";
+			
+			var v = document.getElementById("v");
+			speech.volume = v.options[v.selectedIndex].value;
+			
+			var r = document.getElementById("s");
+			speech.rate = r.options[r.selectedIndex].value;
+			
+			document.getElementById('spoken-text').value = normalized_text;			
+
+			speech.onend = function(e) {
+			    console.log('Finished in ' + event.elapsedTime + ' seconds.');
+			};
+			
+			speechSynthesis.speak(speech);			
+		}
+	});
+
+	function clear_texts() {
+		document.getElementById('speakId').value = ""
+		document.getElementById('spoken-text').value = ""
+	}
+
+	<!--https://stackoverflow.com/questions/33640325/load-text-from-local-txt-file-into-html-textarea-using-javascript-->
+	function loadFileAsText(){
+		console.log("loadFileAsText called")
+		
+		var fileToLoad = document.getElementById("myFile").files[0];
+		var fileReader = new FileReader();
+		fileReader.onload = function(fileLoadedEvent){
+			var textFromFileLoaded = fileLoadedEvent.target.result;
+			document.getElementById("speakId").value = textFromFileLoaded;
+		};
+		fileReader.readAsText(fileToLoad, "UTF-8");
+		
+		var fileToLoad = document.getElementById("myFile").files[0]; 
+		var fileReader = new FileReader();
+		fileReader.onload = function(fileLoadedEvent){
+			var textFromFileLoaded = fileLoadedEvent.target.result;
+			document.getElementById("spoken-text").value = textFromFileLoaded;
+		};
+		fileReader.readAsText(fileToLoad, "UTF-8");		
+	}
+
+	// SAVE FILE AS TXT #################################### SAVE FILE AS TXT STARTS
+	<!--https://stackoverflow.com/questions/609530/download-textarea-contents-as-a-file-using-only-javascript-no-server-side-->
+	function saveText(ID) {
+		var textToWrite = document.getElementById(ID).value;
+		var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+		var fileNameToSaveAs = "fileName.txt" //Your filename;
+		var downloadLink = document.createElement("a");
+		downloadLink.download = fileNameToSaveAs;
+		downloadLink.innerHTML = "Download File";
+		if (window.webkitURL != null){	// Chrome allows the link to be clicked without actually adding it to the DOM.
+			downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+		}
+		else{	// Firefox requires the link to be added to the DOM before it can be clicked.
+			downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+			downloadLink.onclick = destroyClickedElement;
+			downloadLink.style.display = "none";
+			document.body.appendChild(downloadLink);
+		}
+		downloadLink.click();	
+	}
+	// Save origional text
+	function saveTextAsFile2() {
+		saveText("speakId")
+	}
+	// Save spoken text
+	function saveTextAsFile() {
+		saveText("spoken-text")
+	}
+	// ###################################################### SAVE FILE AS TXT ENDS
+
+</script> <!--Javascrip scrip ends-->
+{% endblock %} <!--FLASK BODY ENDS HERE-->
+
+<div class="footer">
+	<table>
+	<col width="200"><col width="200"><col width="400">
+	<tr>
+		<td>I14-1623 Zeeshan Ali</td>
+		<td>I14-1624 Sibtain Raza</td>
+		<td>Supervisor: Muhammad H. Mustafa</td>
+		<td>NATIONAL UNIVERSITY OF COMPUTER & EMERGING SCIENCES</td><td></td>
+	</tr>
+	</table>
+</div>

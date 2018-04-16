@@ -1,0 +1,94 @@
+.header {
+	position: fixed;
+    left: 0;
+    top: 0p;
+    width: 100%;
+}
+
+
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+.inputfile + label {
+	display: inline-block;
+	padding: 15px 25px;
+	font-size: 12px;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	outline: none;
+	color: #fff;
+	background-color: green;
+	border: none;
+	border-radius: 7px;
+	box-shadow: 0 9px #999;
+}
+.inputfile:focus + label,
+.inputfile + label:hover {background-color: LimeGreen}
+.inputfile + label:active {
+	background-color: LimeGreen;
+	box-shadow: 0 5px #666;
+	transform: translateY(4px);
+}
+.inputfile + label {
+	cursor: pointer;
+}
+
+
+.spoken_text{
+	border: 5px solid green;
+	border-radius: 10px;
+	width: 500px;
+	height: 300px;
+	resize: vertical;
+}
+
+
+textarea{
+	border: 5px solid green;
+	border-radius: 10px;
+	width: 500px;
+	height: 300px;
+	resize: vertical;
+}
+
+
+input[type=button] {
+	display: inline-block;
+	padding: 15px 25px;
+	font-size: 12px;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	outline: none;
+	color: #fff;
+	background-color: green;
+	border: none;
+	border-radius: 7px;
+	box-shadow: 0 9px #999;
+}
+input[type=button]:hover {background-color: LimeGreen}
+input[type=button]:active {
+	background-color: LimeGreen;
+	box-shadow: 0 5px #666;
+	transform: translateY(4px);
+}
+
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: green;
+    color: white;
+    text-align: center;
+}
+
+
+.show {display:block;}
